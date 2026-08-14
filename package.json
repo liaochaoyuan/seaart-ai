@@ -1,0 +1,6 @@
+{
+  "name": "seaart-ai",
+  "type": "module",
+  "private": true,
+  "description": "SeaArt AI - Cloudflare Pages static frontend + Functions backend"
+}

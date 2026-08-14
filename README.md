@@ -1,9 +1,10 @@
-# SeaArt AI — 本地 Python 后端版（Flask + 双绘图后端：智谱 AI / Agnes AI）
+# SeaArt AI — Cloudflare Pages 云端文生图（免绑卡 · 24h 免费运行）
 
-一个可直接运行的 AI 文生图 Web 应用：前端 HTML/JS 调用本地 Flask 后端，后端可切换 **智谱 AI（ZhipuAI）** 或 **Agnes AI** 两个绘图通道，
-并自动开启 CORS 跨域。未配置当前后端密钥时自动进入**演示模式**（返回示例图），保证全链路开箱即跑通。
+一个可直接运行的 AI 文生图 Web 应用：前端 HTML/JS 调用后端绘图接口，后端可切换 **智谱 AI（ZhipuAI）** 或 **Agnes AI** 两个绘图通道。
+本项目已改造为 **Cloudflare Pages + Pages Functions**，可免费部署到云端，**不依赖你的电脑**，7×24 小时运行，其他人点击你分享的 `*.pages.dev` 网址即可免费生成图片。
 
-> **本版本为本地免费版**：已彻底移除积分 / 付费墙逻辑，普通生图与 Boost HD 高清增强均可无限使用，不弹付费窗口、无额度限制。
+> **免费无限制**：已彻底移除积分 / 付费墙逻辑，普通生图与 Boost HD 高清增强均可无限使用，不弹付费窗口、无额度限制。
+> 未配置当前后端密钥时自动进入**演示模式**（返回示例图），保证全链路开箱即跑通。
 
 ## ⚠️ 模型选择（务必看）
 后端通过模型名指定绘图模型，**必须是各厂商的【图像】模型**，文本模型不能出图：
@@ -35,43 +36,22 @@
 SeaArt-AI-Project/
 ├── frontend/
 │   └── index.html          # 前端页面（含生图/画廊/下载，无需改动）
-├── backend/
-│   ├── app.py              # Flask 后端（CORS + 双绘图后端 + 图片代理 + 演示兜底）
-│   ├── requirements.txt    # 依赖：flask / flask-cors / requests / zhipuai
-│   └── .env.example        # 双后端配置模板（智谱 + Agnes 全套密钥 + 切换开关）
-├── start.bat               # Windows 一键启动
-├── start.sh                # Linux/macOS 一键启动
+├── functions/              # Cloudflare Pages Functions（云端后端，JS 实现）
+│   ├── _shared/
+│   │   └── utils.js        # 双绘图后端核心逻辑（尺寸映射 / HD 增强 / 演示兜底 / 代理）
+│   └── api/
+│       ├── health.js       # GET  /api/health   健康检查
+│       ├── generate.js     # POST /api/generate 生图
+│       ├── boost.js        # POST /api/boost    Boost HD 高清增强
+│       ├── proxy_image.js  # GET  /api/proxy_image?url=  CORS 安全图片代理
+│       └── demo.js         # GET  /api/demo?prompt=&hd=1  演示模式示例图
+├── package.json            # 声明 ES Module（Cloudflare Functions 需要）
+├── start.bat               # （本地开发可选）启动本地 Flask 后端
+├── start.sh
 └── README.md
 ```
 
-## 快速开始
-
-### 1. 安装依赖
-```bash
-pip install -r backend/requirements.txt
-```
-
-### 2. 配置（复制模板并修改）
-```bash
-cp backend/.env.example backend/.env
-```
-填入你的密钥，并按需设置 `DRAW_BACKEND`（见下）。不配置则自动进入演示模式。
-
-### 3. 切换绘图后端（核心）
-通过环境变量 `DRAW_BACKEND` 选择通道（默认 `zhipu`）：
-
-```bash
-# 使用智谱 AI（默认）
-DRAW_BACKEND=zhipu python backend/app.py
-
-# 使用 Agnes AI
-DRAW_BACKEND=agnes python backend/app.py
-```
-
-- **智谱**：确保 `LLM_MODEL` 为 `cogview-3-flash` / `cogview-3-plus`。
-- **Agnes**：确保 `AGNES_MODEL` 为 `agnes-image-2.0-flash` / `agnes-image-2.1-flash`（**不要**用文本模型 `agnes-2.0-flash`）。
-
-启动后访问 **http://127.0.0.1:5000** 即可使用。
+> 本地开发仍可选用 `backend/app.py`（Python/Flask）；**云端部署只使用 `frontend/` + `functions/`**，不再需要 Docker / 容器 / 绑卡。
 
 ## 接口说明
 
@@ -90,24 +70,55 @@ DRAW_BACKEND=agnes python backend/app.py
 
 > 说明：两厂商原生分辨率上限不同（见上表）。Boost HD 的「4 倍超分」通过 **HD 提示词增强 + 取最大支持尺寸** 等价实现（非像素级 4× 拉伸），`upscale` 参数仍完整保留并驱动超分增强。任一接口异常均自动回退演示图，页面不崩溃。
 
-## 云端部署（Render · 免费 24h 运行 · 可绑 .com 域名）
+---
 
-本项目已容器化，可部署到 [Render](https://render.com) 免费档，**不依赖你的电脑**，云端 7×24 运行。前端 `API_BASE` 已改为相对路径，后端由 Flask 同源托管，`ProxyFix` 已启用，可直接挂自定义域名。
+## 云端部署（Cloudflare Pages · 免费 · 免绑卡 · 7×24 运行）
+
+本项目已改写为 Cloudflare Pages 静态前端 + Pages Functions，可免费部署，**无需信用卡**，且天然 7×24 在线。
 
 ### 改动说明（已就绪）
-- `Dockerfile`：基于 `python:3.12-slim`，安装依赖后 `python backend/app.py`，监听 `0.0.0.0:${PORT}`。
-- `render.yaml`：声明为 Docker Web 服务，`healthCheckPath: /api/health`，`DRAW_BACKEND=zhipu`。
-- `frontend/index.html`：`API_BASE = ""`（相对路径，适配任意域名）。
-- 密钥安全：`app.py` 与 `.env.example` 中**已不再写入真实 Key**；真实密钥仅存在于被 `.gitignore` 忽略的 `backend/.env`（本地用），云端请在 Render 控制台填写。
+- `frontend/index.html`：`API_BASE = ""`（相对路径，自动适配任意域名 / `*.pages.dev`）。
+- `functions/`：用 JavaScript 完整复刻了原 Flask 后端的双绘图后端、尺寸映射、HD 增强、演示兜底与图片代理逻辑，运行在 Cloudflare Edge。
+- `package.json`：声明 `"type": "module"`，Pages Functions 以 ES Module 方式加载。
+- 密钥安全：真实 Key **不在仓库里**；云端请在 Cloudflare 控制台填写环境变量。
 
-### 部署步骤
-1. 将本仓库推送到 GitHub（仓库名如 `seaart-ai`）。
-2. 打开 [render.com](https://render.com) → 用 GitHub 登录 → **New → Web Service** → 选择该仓库。
-3. Render 自动读取 `render.yaml`（Docker 构建）。在 **Environment** 中补填两个私密变量：
+### 部署步骤（约 5 分钟）
+
+1. **确保本仓库已推送到 GitHub**（仓库名如 `seaart-ai`，公开或私有均可）。
+2. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com) → 左侧 **Workers & Pages** → 右上角 **Create** → 选 **Pages** → **Connect to Git**。
+3. 授权并选择你的 GitHub 仓库 `seaart-ai`。
+4. 在 **Set up builds and deployments** 配置：
+   - **Project name**：`seaart-ai`（可自定）
+   - **Production branch**：`main`
+   - **Framework preset**：`None`
+   - **Build command**：**留空**（无需构建）
+   - **Build output directory**：填 `frontend`（静态前端所在目录）
+5. 先点击 **Save and Deploy**（先部署一版，环境变量稍后补）。
+6. 部署完成后，进入项目 **Settings → Environment variables**，添加以下变量（选填；不填则进入演示模式）：
    - `LLM_API_KEY` = 你的智谱 Key
    - `AGNES_API_KEY` = 你的 Agnes Key
-   （`DRAW_BACKEND` 已默认 `zhipu`，可改 `agnes`）
-4. 点击 **Deploy**，等待构建完成，得到形如 `https://seaart-ai.onrender.com` 的地址。
-5. **绑定 .com 子域名**（如 `app.yourname.com`）：在域名 DNS 添加一条 **CNAME** 记录，主机名 `app` → 目标 `seaart-ai.onrender.com`；再到 Render 控制台 **Settings → Custom Domains** 添加 `app.yourname.com` 并验证。
+   - `DRAW_BACKEND` = `zhipu`（默认）或 `agnes`
+   - （可选）`LLM_MODEL` / `AGNES_MODEL` / `LLM_BASE_URL` / `AGNES_BASE_URL` 覆盖默认值
+7. 改完变量后，回到 **Deployments** 页，对最新一次部署点 **Retry / Redeploy** 让变量生效。
+8. 打开形如 `https://seaart-ai.pages.dev` 的地址即可使用，把这个链接发给别人即可免费生图。
 
-> 免费档说明：Render 免费实例在闲置后会有约 30–50 秒冷启动（首次访问稍慢），之后恢复正常；如需常驻可升级付费档。
+> **自定义域名（可选）**：因为你已在 Cloudflare，进入项目 **Custom domains** 添加你的子域名（如 `app.yourname.com`），Cloudflare 会自动下发证书与 DNS，无需额外绑卡。
+
+### 本地预览（可选）
+```bash
+npm install -g wrangler
+wrangler pages dev --project=seaart-ai .
+```
+
+---
+
+## 本地运行（Flask 开发版，可选）
+
+若想在本地用 Python/Flask 跑同一套前端（不部署云端时）：
+
+```bash
+pip install -r backend/requirements.txt
+cp backend/.env.example backend/.env   # 填入密钥；不填则演示模式
+DRAW_BACKEND=zhipu python backend/app.py   # 或 DRAW_BACKEND=agnes
+# 浏览器访问 http://127.0.0.1:5000
+```
