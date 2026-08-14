@@ -3,7 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SeaArt AI - 本地Python后端版</title>
+<title>SeaArt AI - 免费在线AI文生图工具 | 文字一键生成高清图片</title>
+<meta name="description" content="SeaArt AI 是免费的在线 AI 文生图工具，输入提示词即可一键生成超写实、动漫、3D、插画等风格的高清图片。支持高清增强 Boost HD 与多种画幅，无需安装、打开即用。">
+<meta name="keywords" content="AI文生图,AI绘画,文字生成图片,免费AI绘图,AI图片生成器,text to image,AI art generator,SeaArt AI,在线绘图工具">
+<meta name="author" content="SeaArt AI">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0c0c12">
+<link rel="canonical" href="https://seaart-ai.pages.dev/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SeaArt AI - 免费在线AI文生图工具">
+<meta property="og:description" content="输入提示词，一键生成超写实、动漫、3D、插画风格的高清图片。免费、无需安装、打开即用。">
+<meta property="og:url" content="https://seaart-ai.pages.dev/">
+<meta property="og:site_name" content="SeaArt AI">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://seaart-ai.pages.dev/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SeaArt AI - 免费在线AI文生图工具">
+<meta name="twitter:description" content="输入提示词，一键生成超写实、动漫、3D、插画风格的高清图片。免费、无需安装、打开即用。">
+<meta name="twitter:image" content="https://seaart-ai.pages.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "SeaArt AI",
+  "url": "https://seaart-ai.pages.dev/",
+  "description": "免费的在线 AI 文生图工具，输入文字提示词即可生成多种风格的高清图片。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Web",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "CNY"},
+  "inLanguage": ["zh-CN", "en"]
+}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0c0c12;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;line-height:1.6}
@@ -28,6 +58,11 @@ a{color:#ffd066;text-decoration:none}
 .stat-card .label{font-size:13px;color:#888;margin-top:4px}
 .cards-section{max-width:1200px;margin:30px auto;padding:0 20px}
 .section-title{font-size:22px;font-weight:bold;margin-bottom:16px;color:#ffd066}
+.about{max-width:900px;margin:40px auto;padding:0 20px;color:#bbb;font-size:15px}
+.about h2{font-size:22px;font-weight:bold;color:#ffd066;margin-bottom:14px}
+.about p{margin-bottom:12px;line-height:1.8}
+.about ul{margin:0 0 12px 20px}
+.about li{margin-bottom:6px}
 .func-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
 .func-card{background:#161620;border:2px solid #2a2a3a;border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer}
 .func-card.active,.func-card:hover{border-color:#ffd066;background:#1e1e2a}
@@ -75,7 +110,7 @@ footer{background:#161620;text-align:center;padding:20px;color:#666;font-size:12
 </style>
 </head>
 <body>
-<div class="top-bar">✨ 本地Python后端中转 (Flask + 阿里云 Z-Image Turbo) | 本地免费版 · 无限生成</div>
+<div class="top-bar">✨ SeaArt AI · 云端免费 AI 文生图 | 文字一键生成高清图片，无需安装</div>
 <div id="statusBar">正在连接后端服务...</div>
 <nav class="nav">
   <div class="logo"><span>Sea</span>Art AI</div>
@@ -88,7 +123,7 @@ footer{background:#161620;text-align:center;padding:20px;color:#666;font-size:12
 </nav>
 <section class="hero">
   <h1>One‑Step AI Creation Platform</h1>
-  <p>3D Style Prompt Enhancement, ModelScope Async Stable Render</p>
+  <p>输入提示词，一键生成超写实、动漫、3D、插画风格的高清图片</p>
 </section>
 <section class="stats">
   <div class="stat-card"><div class="num">10M+</div><div class="label">Global Users</div></div>
@@ -163,6 +198,19 @@ footer{background:#161620;text-align:center;padding:20px;color:#666;font-size:12
     </div>
     <div class="gallery-grid" id="galleryGrid"></div>
   </div>
+</section>
+<section class="about">
+  <h2>关于 SeaArt AI · 免费在线 AI 文生图</h2>
+  <p>SeaArt AI 是一个免费、无需安装的在线 AI 文生图（Text to Image）工具。你只需用中文或英文描述画面，即可一键生成超写实、动漫二次元、3D、插画、魔幻奇幻等多种风格的高清图片。所有生图在云端完成，不依赖你的电脑，打开网页即可使用。</p>
+  <p>核心功能：</p>
+  <ul>
+    <li>文字生成图片：输入提示词，自动追加画质增强词，生成 8K 级细腻画面。</li>
+    <li>多风格切换：写实、动漫、3D、插画、奇幻，一键切换。</li>
+    <li>多画幅比例：支持 1:1、4:3、16:9、9:16，适配头像、壁纸、海报等场景。</li>
+    <li>Boost HD 高清增强：对生成结果进行 4 倍超分，获得更清晰的细节。</li>
+    <li>画廊管理：自动收藏你的作品，支持在线预览与下载。</li>
+  </ul>
+  <p>无论是 AI 绘画爱好者、设计师，还是想快速把灵感变成图片的普通用户，SeaArt AI 都能帮你几秒钟把想法变成画面。完全免费，无需注册，打开即用。</p>
 </section>
 <footer>© 2026 SeaArt AI. All rights reserved.</footer>
 <div class="modal-overlay preview-modal" id="previewModal">
@@ -424,15 +472,15 @@ document.querySelectorAll(".nav-links li").forEach(li=>li.onclick=()=>{
     const d = await r.json();
     if(d.ok){
       if(d.mode === "demo"){
-        setStatus("⚠️ 后端已连接（演示模式：未配置 DASHSCOPE_API_KEY，将返回示例图）", "warn");
+        setStatus("⚠️ 后端已连接（演示模式：尚未配置绘图密钥，将返回示例图）", "warn");
       }else{
-        setStatus("✅ 后端已连接（阿里云 Z-Image Turbo 生图模式）", "");
+        setStatus("✅ 后端已连接（SeaArt AI 云端生图模式）", "");
       }
     }else{
       setStatus("⚠️ 后端返回异常：" + (d.msg||""), "warn");
     }
   }catch(e){
-    setStatus("❌ 后端未连接，请先启动 Flask（python backend/app.py）", "err");
+    setStatus("❌ 后端未连接，请稍后重试", "err");
   }
 })();
 
