@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SeaArt AI - 本地Python后端版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c12;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;line-height:1.6}
+a{color:#ffd066;text-decoration:none}
+.top-bar{background:#1a1a2e;padding:10px;font-size:14px;color:#ffd066;text-align:center}
+#statusBar{background:#102a1c;color:#7CFFB2;padding:6px 12px;font-size:13px;text-align:center;border-bottom:1px solid #1c3a2a;transition:.3s}
+#statusBar.warn{background:#2a2410;color:#ffd066;border-color:#3a341c}
+#statusBar.err{background:#2a1015;color:#ff8a8a;border-color:#3a1c22}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:#161620;border-bottom:1px solid #2a2a3a;position:sticky;top:0;z-index:100}
+.nav .logo{font-size:22px;font-weight:bold;color:#ffd066}
+.nav .logo span{color:#a78bfa}
+.nav-links{display:flex;gap:20px;list-style:none;font-size:14px}
+.nav-links li{cursor:pointer;padding:4px 0;border-bottom:2px solid transparent}
+.nav-links li.active,.nav-links li:hover{border-color:#ffd066;color:#ffd066}
+.nav-right{display:flex;align-items:center;gap:16px}
+.hero{text-align:center;padding:60px 20px 20px;max-width:800px;margin:0 auto}
+.hero h1{font-size:42px;font-weight:bold;background:linear-gradient(135deg,#ffd066,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px}
+.hero p{font-size:18px;color:#aaa;max-width:600px;margin:0 auto}
+.stats{display:flex;flex-wrap:wrap;justify-content:center;gap:30px;margin:40px auto;max-width:900px}
+.stat-card{background:#161620;border-radius:12px;padding:20px 24px;text-align:center;min-width:150px;flex:1}
+.stat-card .num{font-size:28px;font-weight:bold;color:#ffd066}
+.stat-card .label{font-size:13px;color:#888;margin-top:4px}
+.cards-section{max-width:1200px;margin:30px auto;padding:0 20px}
+.section-title{font-size:22px;font-weight:bold;margin-bottom:16px;color:#ffd066}
+.func-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.func-card{background:#161620;border:2px solid #2a2a3a;border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer}
+.func-card.active,.func-card:hover{border-color:#ffd066;background:#1e1e2a}
+.func-card .icon{font-size:30px;margin-bottom:6px}
+.func-card .name{font-size:13px;font-weight:600}
+.control-panel{background:#161620;border-radius:12px;padding:24px;margin:20px 0;border:1px solid #2a2a3a}
+.panel-form label{display:block;margin:10px 0 4px;font-weight:500;font-size:14px}
+.panel-form textarea{width:100%;background:#0c0c12;border:1px solid #2a2a3a;border-radius:8px;padding:10px 14px;color:#e0e0e0;font-size:14px;outline:none;resize:vertical}
+.panel-form textarea:focus{border-color:#ffd066}
+.panel-form input[type=file]{width:100%;margin:6px 0;color:#aaa;font-size:13px}
+.panel-form select{width:100%;background:#0c0c12;border:1px solid #2a2a3a;border-radius:8px;padding:10px 14px;color:#e0e0e0;font-size:14px;outline:none}
+.panel-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.btn{background:#ffd066;border:none;border-radius:8px;padding:10px 24px;font-weight:700;font-size:15px;color:#0c0c12;cursor:pointer}
+.btn:active{transform:scale(0.97)}
+.btn.secondary{background:#2a2a3a;color:#e0e0e0}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.boost-btn{background:#a78bfa;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-weight:700;font-size:15px;cursor:pointer}
+.boost-btn:active{transform:scale(0.97)}
+.boost-btn:disabled{opacity:0.5;cursor:not-allowed}
+.ratio-group,.style-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;margin-bottom:10px}
+.ratio-chip,.style-chip{background:#2a2a3a;color:#e0e0e0;border:2px solid transparent;border-radius:20px;padding:6px 16px;font-size:13px;cursor:pointer}
+.ratio-chip.active,.ratio-chip:hover,.style-chip.active,.style-chip:hover{border-color:#ffd066;background:#1e1e2a;color:#ffd066}
+.gallery{background:#161620;border-radius:12px;padding:20px;margin-top:20px}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:14px}
+.gallery-item{background:#0c0c12;border-radius:8px;padding:12px;position:relative;overflow:hidden;text-align:center;cursor:pointer}
+.gallery-item img{width:100%;height:160px;object-fit:cover;border-radius:6px;display:block;background:#1a1a2a}
+.gallery-item .meta{font-size:11px;color:#888;margin-top:6px;max-height:32px;overflow:hidden}
+.download-group{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px}
+.download-btn{background:#2a2a3a;color:#e0e0e0;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}
+.download-btn:hover{background:#3a3a4a}
+.download-btn:disabled{opacity:.5;cursor:not-allowed}
+.hd-download-btn{background:#a78bfa;color:#fff}
+.hd-download-btn:hover{background:#7c5fbf}
+footer{background:#161620;text-align:center;padding:20px;color:#666;font-size:12px;border-top:1px solid #2a2a3a;margin-top:40px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#161620;border-radius:16px;padding:30px;width:90%;max-width:420px;border:1px solid #2a2a3a}
+.modal h2{color:#ffd066;margin-bottom:8px}
+.modal p{color:#aaa;font-size:14px;margin:10px 0}
+.close-modal{float:right;cursor:pointer;font-size:24px;color:#aaa;background:none;border:none}
+.preview-modal .modal{max-width:700px;text-align:center}
+.preview-modal .modal img{max-width:100%;height:auto;border-radius:8px;margin-top:10px}
+.hidden{display:none !important}
+@media(max-width:600px){.nav-links{display:none}.hero h1{font-size:28px}.stat-card{min-width:100px}}
+</style>
+</head>
+<body>
+<div class="top-bar">✨ 本地Python后端中转 (Flask + 阿里云 Z-Image Turbo) | 本地免费版 · 无限生成</div>
+<div id="statusBar">正在连接后端服务...</div>
+<nav class="nav">
+  <div class="logo"><span>Sea</span>Art AI</div>
+  <ul class="nav-links">
+    <li class="active" data-tab="create">Create</li>
+    <li data-tab="gallery">Gallery</li>
+  </ul>
+  <div class="nav-right">
+  </div>
+</nav>
+<section class="hero">
+  <h1>One‑Step AI Creation Platform</h1>
+  <p>3D Style Prompt Enhancement, ModelScope Async Stable Render</p>
+</section>
+<section class="stats">
+  <div class="stat-card"><div class="num">10M+</div><div class="label">Global Users</div></div>
+  <div class="stat-card"><div class="num">500+</div><div class="label">Style Models</div></div>
+  <div class="stat-card"><div class="num">5s</div><div class="label">Avg Async Wait</div></div>
+  <div class="stat-card"><div class="num">4.9★</div><div class="label">User Rating</div></div>
+</section>
+<section class="cards-section" id="cardsSection">
+  <div class="section-title">Create</div>
+  <div class="func-cards" id="funcCards">
+    <div class="func-card active" data-func="text2img"><div class="icon">🖼</div><div class="name">Text to Image</div></div>
+    <div class="func-card" data-func="imageEdit"><div class="icon">✂️</div><div class="name">Quick Edit</div></div>
+    <div class="func-card" data-func="controlnet"><div class="icon">✏️</div><div class="name">ControlNet</div></div>
+  </div>
+  <div class="control-panel" id="panelContainer">
+    <div id="panelText2img" class="panel-form">
+      <label>Prompt *（中文提示词兼容）</label>
+      <textarea rows="3" placeholder="豪华别墅，堆满金币，高颜值美女，8k超高清" id="promptText2img"></textarea>
+      <label>Negative Prompt</label>
+      <textarea rows="2" placeholder="模糊，低画质，畸形，水印" id="negText2img"></textarea>
+      <label>Style</label>
+      <div class="style-group" id="styleText2img">
+        <span class="style-chip active" data-style="realistic">Realistic</span>
+        <span class="style-chip" data-style="anime">Anime</span>
+        <span class="style-chip" data-style="3d">3D</span>
+        <span class="style-chip" data-style="illustration">Illustration</span>
+        <span class="style-chip" data-style="fantasy">Fantasy</span>
+      </div>
+      <label>Aspect Ratio</label>
+      <div class="ratio-group" id="ratioText2img">
+        <span class="ratio-chip active" data-ratio="1:1">1:1</span>
+        <span class="ratio-chip" data-ratio="4:3">4:3</span>
+        <span class="ratio-chip" data-ratio="16:9">16:9</span>
+        <span class="ratio-chip" data-ratio="9:16">9:16</span>
+      </div>
+      <div class="panel-actions">
+        <button class="btn secondary" id="clearText2img">Clear</button>
+        <button class="btn" id="generateText2img">Generate</button>
+        <button class="boost-btn" id="boostText2img">🚀 Boost HD</button>
+      </div>
+    </div>
+    <div id="panelImageEdit" class="panel-form hidden">
+      <label>Upload Image</label>
+      <input type="file" accept="image/*" id="uploadEdit">
+      <label>Edit Mode</label>
+      <select id="editType">
+        <option>Upscale</option>
+        <option>Remove Background</option>
+        <option>Enhance Quality</option>
+      </select>
+      <div class="panel-actions">
+        <button class="btn secondary" id="clearEdit">Clear</button>
+        <button class="btn" id="generateEdit">Process</button>
+        <button class="boost-btn" id="boostEdit">🚀 Boost HD</button>
+      </div>
+    </div>
+    <div id="panelControlnet" class="panel-form hidden">
+      <label>Reference Image (lineart/pose/depth)</label>
+      <input type="file" accept="image/*" id="controlRef">
+      <label>Prompt</label>
+      <textarea rows="2" placeholder="Describe your artwork..." id="promptControl"></textarea>
+      <div class="panel-actions">
+        <button class="btn secondary" id="clearControl">Clear</button>
+        <button class="btn" id="generateControl">Generate</button>
+        <button class="boost-btn" id="boostControl">🚀 Boost HD</button>
+      </div>
+    </div>
+  </div>
+  <div class="gallery" id="gallerySection">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="section-title" style="margin-bottom:0">Your Gallery</span>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</section>
+<footer>© 2026 SeaArt AI. All rights reserved.</footer>
+<div class="modal-overlay preview-modal" id="previewModal">
+  <div class="modal">
+    <button class="close-modal" id="closePreviewBtn">&times;</button>
+    <img id="previewImage" src="" alt="Preview">
+  </div>
+</div>
+<script>
+// 后端基地址（本地 5000 端口 Flask 服务，已开启 CORS）
+const API_BASE = "";
+// Boost HD 高清增强参数（点击 Boost HD 时自动传递至后端 /api/boost）
+const BOOST_UPSCALE = 4;     // 高清倍率 (1~4)，Boost HD 默认 4 倍超分
+const BOOST_SUPERRES = true; // 超分开关
+const MAX_WAIT_TIME = 120000;
+
+const globalState = {
+  currentFunction: "text2img",
+  drawParams: { prompt: "", negativePrompt: "", ratio: "1:1", style: "realistic" },
+  workGallery: []
+};
+const funcCards = document.querySelectorAll(".func-card");
+const panels = {
+  text2img: document.getElementById("panelText2img"),
+  imageEdit: document.getElementById("panelImageEdit"),
+  controlnet: document.getElementById("panelControlnet")
+};
+const galleryGrid = document.getElementById("galleryGrid");
+const previewModal = document.getElementById("previewModal");
+const closePreviewBtn = document.getElementById("closePreviewBtn");
+const previewImage = document.getElementById("previewImage");
+const generateBtn = document.getElementById("generateText2img");
+const boostBtn = document.getElementById("boostText2img");
+const statusBar = document.getElementById("statusBar");
+
+function setStatus(msg, type){
+  statusBar.textContent = msg;
+  statusBar.className = type || "";
+}
+
+function showPreviewModal(url){
+  previewImage.src = url;
+  previewModal.classList.add("show");
+}
+function hidePreviewModal(){
+  previewModal.classList.remove("show");
+}
+
+function getStyleSuffix(styleKey){
+  switch(styleKey){
+    case "anime": return ", 动漫风格，二次元精细原画";
+    case "3d": return ", 3D卡通人偶，塑料质感，柔和影棚柔光，Octane渲染，Blender，皮克斯渲染";
+    case "illustration": return ", 手绘插画，数字厚涂，精细线稿";
+    case "fantasy": return ", 魔幻奇幻场景，史诗光影";
+    default: return ", 超写实商业摄影，8k超清，极致细节";
+  }
+}
+// 自动追加正向质量增强词（8K / 超精细 / 电影级光影）
+const QUALITY_POS = "，8k分辨率，超精细，电影级光影，超高清画质，极致细节，大师级构图";
+// 强制负向屏蔽词：始终屏蔽水印、畸变、模糊、低分辨率等
+const QUALITY_NEG = "，水印，畸变，变形，模糊，低分辨率，低画质，畸形，五官崩坏，涂抹感，压缩伪影";
+function buildFullPrompt(text, style){
+  return (text || "") + getStyleSuffix(style) + QUALITY_POS;
+}
+function buildNeg(negUser){
+  const base = (negUser && negUser.trim()) ? negUser.trim() : "";
+  return base + QUALITY_NEG;
+}
+function getSizeByRatio(ratio, isBoost) {
+  const base = isBoost ? 768 : 512;
+  const map = {
+    "1:1": {w: base, h: base},
+    "4:3": {w: Math.round(base*1.33), h: base},
+    "16:9": {w: Math.round(base*1.78), h: base},
+    "9:16": {w: base, h: Math.round(base*1.78)}
+  }
+  return map[ratio] || {w: base, h: base};
+}
+
+// 通过后端代理下载图片（规避浏览器跨域，支持阿里云图床与演示图）
+async function downloadImage(url, filename){
+  try{
+    const proxy = API_BASE + "/api/proxy_image?url=" + encodeURIComponent(url);
+    const resp = await fetch(proxy);
+    if(!resp.ok) throw new Error("下载代理返回 " + resp.status);
+    const blob = await resp.blob();
+    const a = document.createElement("a");
+    const ext = (blob.type.indexOf("png")>=0) ? "png" : (blob.type.indexOf("svg")>=0 ? "svg" : "jpg");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename + "." + ext;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    setStatus("✅ 图片已下载：" + filename, "");
+  }catch(err){
+    setStatus("❌ 下载失败：" + err.message, "err");
+  }
+}
+
+async function runGenerate(text, neg, ratio, style, isBoost, btn) {
+  const originalText = btn.textContent;
+  try {
+    btn.disabled = true;
+    btn.textContent = "任务提交中...";
+    setStatus("正在请求生图接口：" + text.slice(0,20) + "...", "warn");
+    const fullPrompt = buildFullPrompt(text, style);
+    const negPrompt = buildNeg(neg);
+    const size = getSizeByRatio(ratio, isBoost);
+    const res = await fetch(API_BASE + "/api/generate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        prompt: fullPrompt,
+        neg: negPrompt,
+        w: size.w,
+        h: size.h
+      })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.msg || "未知错误");
+    globalState.workGallery.unshift({
+      id: Date.now(),
+      prompt: text,
+      imgUrl: data.img_url,
+      type: isBoost ? "Boost高清" : "普通生成",
+      mode: data.mode || "aliyun"
+    });
+    renderGallery();
+    setStatus("✅ 图片生成完成，已加载到画廊" + (data.mode === "demo" ? "（演示模式示例图）" : ""), "");
+  } catch (err) {
+    setStatus("❌ 生成失败：" + err.message, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+function renderGallery(){
+  galleryGrid.innerHTML = "";
+  if(globalState.workGallery.length === 0){
+    galleryGrid.innerHTML = '<div style="color:#666;font-size:13px;grid-column:1/-1;text-align:center;padding:20px">暂无作品，快来生成第一张吧～</div>';
+    return;
+  }
+  globalState.workGallery.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "gallery-item";
+    div.innerHTML = `
+      <img src="${item.imgUrl}" loading="lazy" alt="art"/>
+      <div class="meta">${item.type} · ${item.prompt.slice(0,24)}</div>
+      <div class="download-group">
+        <button class="download-btn">SD下载</button>
+        <button class="hd-download-btn">HD下载</button>
+      </div>
+    `;
+    const sdBtn = div.querySelector(".download-btn");
+    const hdBtn = div.querySelector(".hd-download-btn");
+    sdBtn.onclick = (e)=>{ e.stopPropagation(); downloadImage(item.imgUrl, "seaart_" + item.id); };
+    hdBtn.onclick = (e)=>{ e.stopPropagation(); downloadImage(item.imgUrl, "seaart_" + item.id + "_hd"); };
+    div.onclick = ()=> showPreviewModal(item.imgUrl);
+    galleryGrid.appendChild(div);
+  })
+}
+function switchPanel(name){
+  globalState.currentFunction = name;
+  Object.values(panels).forEach(p=>p.classList.add("hidden"));
+  panels[name].classList.remove("hidden");
+  funcCards.forEach(c=>c.classList.toggle("active", c.dataset.func === name));
+}
+
+document.getElementById("promptText2img").addEventListener("input", e=>globalState.drawParams.prompt = e.target.value);
+document.getElementById("negText2img").addEventListener("input", e=>globalState.drawParams.negativePrompt = e.target.value);
+document.querySelectorAll(".style-chip").forEach(chip=>chip.onclick=()=>{
+  document.querySelectorAll(".style-chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  globalState.drawParams.style = chip.dataset.style;
+});
+document.querySelectorAll(".ratio-chip").forEach(chip=>chip.onclick=()=>{
+  document.querySelectorAll(".ratio-chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  globalState.drawParams.ratio = chip.dataset.ratio;
+});
+funcCards.forEach(card=>card.onclick=()=>switchPanel(card.dataset.func));
+
+generateBtn.onclick = async () => {
+  const prompt = document.getElementById("promptText2img").value.trim();
+  const neg = document.getElementById("negText2img").value.trim();
+  if (!prompt) return setStatus("⚠️ 请填写画面提示词再生成", "warn");
+  await runGenerate(prompt, neg, globalState.drawParams.ratio, globalState.drawParams.style, false, generateBtn);
+};
+// Boost HD 高清增强：调用后端 /api/boost，自动传递倍率与超分参数
+async function runBoost(text, neg, ratio, style, btn) {
+  const originalText = btn.textContent;
+  try {
+    btn.disabled = true;
+    btn.textContent = "高清增强中...";
+    setStatus("正在请求 Boost HD 高清增强：" + text.slice(0,20) + "...", "warn");
+    const fullPrompt = buildFullPrompt(text, style);
+    const negPrompt = buildNeg(neg);
+    const size = getSizeByRatio(ratio, true);
+    const res = await fetch(API_BASE + "/api/boost", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        prompt: fullPrompt,
+        neg: negPrompt,
+        w: size.w,
+        h: size.h,
+        upscale: BOOST_UPSCALE,
+        superres: BOOST_SUPERRES
+      })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.msg || "未知错误");
+    globalState.workGallery.unshift({
+      id: Date.now(),
+      prompt: text,
+      imgUrl: data.img_url,
+      type: "Boost高清",
+      mode: data.mode || "aliyun"
+    });
+    renderGallery();
+    setStatus("✅ Boost HD 高清图已生成，已加载到画廊" + (data.mode === "demo" ? "（演示模式示例图）" : ""), "");
+  } catch (err) {
+    setStatus("❌ Boost HD 失败：" + err.message, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+boostBtn.onclick = async () => {
+  const prompt = document.getElementById("promptText2img").value.trim();
+  const neg = document.getElementById("negText2img").value.trim();
+  if (!prompt) return setStatus("⚠️ 请填写画面提示词", "warn");
+  await runBoost(prompt, neg, globalState.drawParams.ratio, globalState.drawParams.style, boostBtn);
+};
+document.getElementById("clearText2img").onclick = () => {
+  document.getElementById("promptText2img").value = "";
+  document.getElementById("negText2img").value = "";
+  globalState.drawParams.prompt = "";
+  globalState.drawParams.negativePrompt = "";
+};
+
+closePreviewBtn.onclick = hidePreviewModal;
+previewModal.onclick = e=>e.target === previewModal && hidePreviewModal();
+document.querySelectorAll(".nav-links li").forEach(li=>li.onclick=()=>{
+  document.querySelectorAll(".nav-links li").forEach(l=>l.classList.remove("active"));
+  li.classList.add("active");
+  const tab = li.dataset.tab;
+  if(tab==="gallery")document.getElementById("gallerySection").scrollIntoView({behavior:"smooth"});
+  if(tab==="create")document.getElementById("cardsSection").scrollIntoView({behavior:"smooth"});
+});
+
+// 启动健康检查：确认后端 Flask 服务可达
+(async function checkHealth(){
+  try{
+    const r = await fetch(API_BASE + "/api/health", {cache:"no-store"});
+    const d = await r.json();
+    if(d.ok){
+      if(d.mode === "demo"){
+        setStatus("⚠️ 后端已连接（演示模式：未配置 DASHSCOPE_API_KEY，将返回示例图）", "warn");
+      }else{
+        setStatus("✅ 后端已连接（阿里云 Z-Image Turbo 生图模式）", "");
+      }
+    }else{
+      setStatus("⚠️ 后端返回异常：" + (d.msg||""), "warn");
+    }
+  }catch(e){
+    setStatus("❌ 后端未连接，请先启动 Flask（python backend/app.py）", "err");
+  }
+})();
+
+switchPanel("text2img");
+renderGallery();
+</script>
+</body>
+</html>

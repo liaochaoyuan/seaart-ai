@@ -1,0 +1,20 @@
+# ===== 密钥（含真实 API Key，切勿提交到仓库）=====
+backend/.env
+.env
+
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+
+# ===== 本地生成产物 / 打包文件 =====
+output/
+*.zip
+
+# ===== 系统 / 编辑器 =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
