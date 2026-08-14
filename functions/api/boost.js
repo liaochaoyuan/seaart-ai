@@ -1,4 +1,4 @@
-import { jsonResponse, errorResponse, generateImage } from "../_shared/utils.js";
+import { jsonResponse, errorResponse, generateImage, getConfig } from "../_shared/utils.js";
 
 export async function onRequestPost(context) {
   try {
